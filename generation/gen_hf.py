@@ -132,13 +132,18 @@ gathered_data = []
 for i in range(len(ds)):
     tmp_data = {"prompt": ds[i][script_args.dataset_key], "responses": responses[i]}
     gathered_data.append(tmp_data)
-    print(tmp_data)
+    #print(tmp_data)
 
-output_eval_dataset = {}
-output_eval_dataset["type"] = "text_only"
-output_eval_dataset["instances"] = gathered_data
+#output_eval_dataset = {}
+#output_eval_dataset["type"] = "text_only"
+#output_eval_dataset["instances"] = gathered_data
 print("I collect ", len(gathered_data), "samples")
 
 
-with open(output_dir, "w", encoding="utf8") as f:
-    json.dump(output_eval_dataset, f, ensure_ascii=False)
+with open(output_dir, 'w', encoding='utf8') as f:
+    for i in range(len(gathered_data)):
+        json.dump(gathered_data[i], f, ensure_ascii=False)
+        f.write('\n')
+        
+#with open(output_dir, "w", encoding="utf8") as f:
+#    json.dump(output_eval_dataset, f, ensure_ascii=False)
