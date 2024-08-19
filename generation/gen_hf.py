@@ -105,7 +105,7 @@ default_args = {
 
 print(default_args)
 
-ds = load_dataset(ds_dir, split="train")
+ds = load_dataset(ds_dir, split="train").select(range(100))
 # load_dataset("json", data_files=ds_dir, split="train", field="instances")
 print(ds)
 
@@ -130,7 +130,7 @@ with ThreadPoolExecutor(max_workers=script_args.max_workers) as executor:
 
 gathered_data = []
 for i in range(len(ds)):
-    tmp_data = {"prompt": ds[i]["prompt"], "responses": responses[i]}
+    tmp_data = {"prompt": ds[i][script_args.dataset_key], "responses": responses[i]}
     gathered_data.append(tmp_data)
     print(tmp_data)
 
