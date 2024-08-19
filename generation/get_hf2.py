@@ -123,15 +123,20 @@ completions = []
 used_prompts = []
 gathered_data = []
 for i, output in enumerate(outputs):
-    tmp_data = {"prompt": prompts[i], "responses": [out.text for out in output.outputs]}
+    tmp_data = {"prompt": ds[i][script_args.dataset_key], "responses": [out.text for out in output.outputs]}
     gathered_data.append(tmp_data)
 
 
-output_eval_dataset = {}
-output_eval_dataset["type"] = "text_only"
-output_eval_dataset["instances"] = gathered_data
+#output_eval_dataset = {}
+#output_eval_dataset["type"] = "text_only"
+#output_eval_dataset["instances"] = gathered_data
 print("I collect ", len(gathered_data), "samples")
 
+with open(script_args.output_dir + str(script_args.local_index) + ".jsonl", 'w', encoding='utf8') as f:
+    for i in range(len(gathered_data)):
+        json.dump(gathered_data[i], f, ensure_ascii=False)
+        f.write('\n')
+        
 
-with open(script_args.output_dir + str(script_args.local_index) + ".json", "w", encoding="utf8") as f:
-    json.dump(output_eval_dataset, f, ensure_ascii=False)
+#with open(script_args.output_dir + str(script_args.local_index) + ".json", "w", encoding="utf8") as f:
+#    json.dump(output_eval_dataset, f, ensure_ascii=False)
