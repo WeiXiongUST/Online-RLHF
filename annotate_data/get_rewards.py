@@ -24,11 +24,11 @@ class ScriptArguments:
     """
 
     dataset_name_or_path: Optional[str] = field(
-        default="iter2_K64.json",
+        default="uf_split0_responses_K8.json",
         metadata={"help": "the location of the dataset name or path"},
     )
     output_dir: Optional[str] = field(
-        default="iter2_K64_Mreward.json",
+        default="uf_split0_responses_K8_reward.json",
         metadata={"help": "the location of the output file"},
     )
     record_dir: Optional[str] = field(
@@ -83,10 +83,6 @@ data_size = len(ds["prompt"])
 share = int(data_size / world_size) + 1
 ds = ds.select(np.arange(local_rank * share, min((local_rank + 1) * share, len(ds))))
 
-"""
-We process the data format here and query the reward model to get the rewards.
-"""
-
 
 def get_reward(test_texts):
     pipe_outputs = rm_pipe(test_texts, **pipe_kwargs)
@@ -95,20 +91,12 @@ def get_reward(test_texts):
 
 
 def change_of_format(prom, resp):
-    # To be modified according to the reward model and the LLM you use
-    # Be careful about multi-turn conversions
     """
-    prom = prom.replace("<s>GPT4 Correct User: ", "").replace("<|end_of_turn|>GPT4 Correct Assistant:", "")
-
-    final_resp = resp.split("GPT4 Correct User")[0]
+    Prom is in the standard format (can be multi-turn):
+    [ { "content": "Who is the top country singer right now?", "role": "user" } ]
+    resp is a string
     """
-    prom = prom
-    final_resp = resp
-
-    message = [
-        {"role": "user", "content": prom},
-        {"role": "assistant", "content": final_resp},
-    ]
+    message = prom + [{"role": "assistant", "content": resp}]
     return rm_tokenizer.apply_chat_template(message, tokenize=False).replace(rm_tokenizer.bos_token, "")
 
 
@@ -120,11 +108,8 @@ with torch.no_grad():
         # The VLLM may not generate responses for some prompts because it is too long, we skip them
         if len(sample["responses"]) < script_args.K:
             continue
-        # test_texts = [change_of_format(sample['prompt'], tmp_output) for tmp_output in sample['responses']]
-        test_texts = [
-            sample["prompt"] + script_args.input_output_delimiter + tmp_output.strip()
-            for tmp_output in sample["responses"]
-        ]
+        test_texts = [change_of_format(sample['prompt'], tmp_output) for tmp_output in sample['responses']]
+        
         rewards = get_reward(test_texts)
         data.append({"prompt": sample["prompt"], "responses": sample["responses"], "rewards": rewards})
 
