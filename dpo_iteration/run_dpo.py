@@ -128,61 +128,8 @@ def prepare_data(
     max_min_p: best v.s. worst but we additionally add a length penalty in the reward value
     """
     ds = load_dataset("json", data_files=data_dir, split="train")
-    print(ds)
-
-    pos = []
-    neg = []
-    prompts = []
-
-    margin = []
-    for sample in ds:
-        P = tokenizer.apply_chat_template(sample["prompt"], tokenize = False, add_generation_prompt= True)
-        if choose_type == "random":
-            idx0 = 0
-            idx1 = 1
-        elif choose_type == "max_random":
-            idx0 = np.argmax(sample["rewards"])
-            if idx0 == 0:
-                idx1 = 1
-            else:
-                idx1 = 0
-        elif choose_type == "max_min":
-            idx0 = np.argmax(sample["rewards"])
-            idx1 = np.argmin(sample["rewards"])
-        elif choose_type == "max_max":
-            sorted_indices = np.argsort(sample["rewards"])
-            idx0 = sorted_indices[-1]
-            idx1 = sorted_indices[-2]
-        elif choose_type == "max_min_p":
-            r = [
-                sample["rewards"][i] - length_penalty * len(sample["responses"][i])
-                for i in range(len(sample["rewards"]))
-            ]
-            idx0 = np.argmax(r)
-            idx1 = np.argmin(r)
-        else:
-            raise NotImplementedError
-
-        if type(idx0) == np.ndarray or type(idx0) == list:
-            assert len(idx0) == len(idx1)
-            for i in range(len(idx0)):
-                prompts.append(P)
-                pos.append(sample["responses"][idx0[i]] + eot_token)
-                neg.append(sample["responses"][idx1[i]] + eot_token)
-                margin.append((sample["rewards"][idx0[i]] - sample["rewards"][idx1[i]]) * margin_scale)
-        else:
-            if sample["rewards"][idx0] > sample["rewards"][idx1]:
-                prompts.append(P)
-                pos.append(sample["responses"][idx0] + eot_token)
-                neg.append(sample["responses"][idx1] + eot_token)
-                margin.append((sample["rewards"][idx0] - sample["rewards"][idx1]) * margin_scale)
-            elif sample["rewards"][idx0] < sample["rewards"][idx1]:
-                prompts.append(P)
-                pos.append(sample["responses"][idx1] + eot_token)
-                neg.append(sample["responses"][idx0] + eot_token)
-                margin.append((-sample["rewards"][idx0] + sample["rewards"][idx1]) * margin_scale)
-    dataset = Dataset.from_dict({"prompt": prompts, "chosen": pos, "rejected": neg, "margin": margin})
-
+    
+    dataset = ds.shuffle()
     if sanity_check:
         dataset = dataset.select(range(min(len(dataset), 100)))
 
@@ -220,6 +167,7 @@ if __name__ == "__main__":
         attn_implementation="flash_attention_2",
     )
     tokenizer = AutoTokenizer.from_pretrained(model_config.model_name_or_path)
+    '''
     if script_args.eos_padding:
         tokenizer.pad_token = tokenizer.eos_token
     else:
@@ -231,7 +179,7 @@ if __name__ == "__main__":
         model.resize_token_embeddings(len(tokenizer))
         model_ref.resize_token_embeddings(len(tokenizer))
 
-
+    '''
     # 2. Load the Stack-exchange paired dataset
     train_dataset = prepare_data(
         data_dir=script_args.train_dir,
