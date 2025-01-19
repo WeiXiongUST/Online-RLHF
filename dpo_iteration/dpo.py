@@ -102,6 +102,7 @@ class MyDPOTrainer(DPOTrainer):
             reference_free=reference_free,
             force_use_ref_model=force_use_ref_model,
         )
+        self.args.rpo_alpha = 1.0
 
 
     def dpo_loss(
@@ -130,7 +131,7 @@ class MyDPOTrainer(DPOTrainer):
         rejected_logratios = policy_rejected_logps.to(self.accelerator.device) - (
             not self.reference_free
         ) * reference_rejected_logps.to(self.accelerator.device)
-
+        
         if self.f_divergence_type == FDivergenceType.ALPHA_DIVERGENCE.value:
             # The alpha-divergence formula: (1 - u^-alpha) / alpha
             # The divergence difference between the chosen and rejected sample is:
