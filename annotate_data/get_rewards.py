@@ -88,9 +88,12 @@ We process the data format here and query the reward model to get the rewards.
 """
 
 
-def get_reward(test_texts):
+def get_reward(test_texts, txt_len):
     pipe_outputs = rm_pipe(test_texts, **pipe_kwargs)
-    rewards = [output[0]["score"] for output in pipe_outputs]
+    rewards = []
+    for i in range(len(test_texts)):
+        rewards.append(pipe_outputs[i][0]["score"] - 0.001 * txt_len[i])
+    #rewards = [output[0]["score"] - 0.001 *  for output in pipe_outputs]
     return rewards
 
 
@@ -115,8 +118,8 @@ with torch.no_grad():
         if len(sample["responses"]) < script_args.K:
             continue
         test_texts = [change_of_format(sample['prompt'], tmp_output) for tmp_output in sample['responses']]
-        
-        rewards = get_reward(test_texts)
+        txt_len = [len(tmp_output) for tmp_output in sample['responses']]
+        rewards = get_reward(test_texts, txt_len)
         data.append({"prompt": sample["prompt"], "responses": sample["responses"], "rewards": rewards})
 
 
