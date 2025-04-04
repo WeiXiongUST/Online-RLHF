@@ -81,7 +81,7 @@ EOT
 for i in {1..3}
 do
     iteration_name="LLaMA3_iter${i}"
-    jsonl_input="RLHFlow/ultrafeedback_iter${i}"
+    jsonl_input="raftstudy/uf_iter${i}"
     json_output="${base_path}/${iteration_prefix}${i}_${iteration_name}"
     model_output="${base_path}/${iteration_prefix}${i}_${iteration_name}_reward.json"
 
