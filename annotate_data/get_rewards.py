@@ -75,7 +75,7 @@ rm_pipe = pipeline(
 ds_dir = script_args.dataset_name_or_path
 world_size = int(os.getenv("WORLD_SIZE", "1"))
 ds = load_dataset("json", data_files=ds_dir, split="train")
-
+#ds = ds.select(range(100))
 local_rank = Accelerator().local_process_index
 
 data_size = len(ds["prompt"])
@@ -105,8 +105,11 @@ def change_of_format(prom, resp):
 
     final_resp = resp.split("GPT4 Correct User")[0]
     """
-    message = prom + [{"role": "assistant", "content": resp}]
-    return rm_tokenizer.apply_chat_template(message, tokenize=False).replace(rm_tokenizer.bos_token, "")
+    #message = prom + [{"role": "assistant", "content": resp}]
+    message = prom + resp 
+    message.replace(rm_tokenizer.bos_token, "") + "<|eot_id|>"
+    #return rm_tokenizer.apply_chat_template(message, tokenize=False).replace(rm_tokenizer.bos_token, "")
+    return message
 
 
 data = []

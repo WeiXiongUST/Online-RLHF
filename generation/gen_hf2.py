@@ -123,7 +123,7 @@ completions = []
 used_prompts = []
 gathered_data = []
 for i, output in enumerate(outputs):
-    tmp_data = {"prompt": ds[i][script_args.dataset_key], "responses": [out.text for out in output.outputs]}
+    tmp_data = {"prompt": ds[i]["prompt"], "responses": [out.text for out in output.outputs]}
     gathered_data.append(tmp_data)
 
 

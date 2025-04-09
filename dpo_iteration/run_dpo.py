@@ -129,6 +129,18 @@ def prepare_data(
     """
     ds = load_dataset("json", data_files=data_dir, split="train")
     
+    prompts = []
+    pos = []
+    neg = []
+    margin = []
+    
+    for sample in ds:
+        prompts.append(sample['prompt'])
+        pos.append(sample['chosen'] + eot_token)
+        neg.append(sample["rejected"] + eot_token)
+        margin.append(sample['chosen_reward'] - sample['rejected_reward'])
+    
+    dataset = Dataset.from_dict({"prompt": prompts, "chosen": pos, "rejected": neg, "margin": margin})
     dataset = ds.shuffle()
     if sanity_check:
         dataset = dataset.select(range(min(len(dataset), 100)))
@@ -141,6 +153,8 @@ if __name__ == "__main__":
     
     parser = H4ArgumentParser((ScriptArguments, DPOConfig, ModelConfig))
     script_args, training_args, model_config = parser.parse()
+    
+    training_args.save_only_model = True
 
     # 1. load a pretrained model
     model = AutoModelForCausalLM.from_pretrained(
