@@ -89,7 +89,7 @@ else:
         "rejected_feature": []
     }
     ## processing the previous pair (construct the matrix)
-    for sample in tqdm(prev_preference_data):
+    for sample in tqdm(prev_preference_data[:100]):
         chosen_text = sample['prompt'] + sample['chosen'] + tokenizer.eos_token
         rej_text = sample['prompt'] + sample['rejected'] + tokenizer.eos_token
         # 编码
@@ -144,11 +144,16 @@ else:
         return [x.T @ A_inv @ x for x in x_list]
     
     preference_data = []
-    for sample in tqdm(current_data):
+    for sample in tqdm(current_data[:100]):
         tmp = [(sample['responses'][i],sample['rewards'][i]) for i in range(len(sample['responses']))]
+        #print(tmp)
+        #print(len(tmp))
         tmp = sorted(tmp, key=lambda x: x[1], reverse=True)
-        chosen_answers = tmp[:len(tmp)/2]
-        rejected_answers = tmp[len(tmp)/2:]
+        #print(len(tmp))
+        half = int(len(tmp)/2)
+        #print(half)
+        chosen_answers = tmp[:half]
+        rejected_answers = tmp[half:]
         
         tmp_feature_data = {
             "chosen_feature": [],
