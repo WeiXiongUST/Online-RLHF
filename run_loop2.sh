@@ -7,10 +7,10 @@ eval "$(conda shell.bash hook)"
 # Base paths and settings
 initial_model="RLHFlow/LLaMA3-SFT-v2"
 #"meta-llama/Meta-Llama-3-8B-Instruct"
-base_path="./iter_dpo_vanilla"
+base_path="./iter_dpo_uncertainty"
 #"/home/wx/Iterative-RLHF-dev/test"
 mkdir $base_path
-iteration_prefix="vanilla"
+iteration_prefix="uncertainty"
 K=8
 
 
@@ -25,7 +25,10 @@ run_iteration() {
     local model_output=$5
     local uncertainty_output=$6
 
-    if [[ "$iteration" == "ultrafeedback_test_iter1" ]]; then
+    if [[ "$iteration" == "ultrafeedback_uncertainty_iter1" ]]; then
+        return
+    fi
+    if [[ "$iteration" == "ultrafeedback_uncertainty_iter2" ]]; then
         return
     fi
 
@@ -38,18 +41,18 @@ run_iteration() {
     infer_model=$2
     prompt_dir=$3
     output_dir=$4
-#     CUDA_VISIBLE_DEVICES=0 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 0 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=1 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 1 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=2 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 2 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=3 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 3 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=4 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 4 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=5 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 5 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=6 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 6 --my_world_size ${my_world_size} --eos_ids 128009 &
-# CUDA_VISIBLE_DEVICES=7 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 7 --my_world_size ${my_world_size} --eos_ids 128009 &
-#     wait
-#     python ./generation/merge_data.py --base_path ${output_dir} --output_dir "${output_dir}_data.jsonl" --num_datasets 8
-#     accelerate launch annotate_data/get_rewards.py --reward_name_or_path sfairXC/FsfairX-LLaMA3-RM-v0.1 --dataset_name_or_path "${output_dir}_data.jsonl" --output_dir $model_output
-    python uncertainty_select.py --model_path $model_path --dataset_path $model_output --output_dir $uncertainty_output
+    CUDA_VISIBLE_DEVICES=0 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 0 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=1 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 1 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=2 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 2 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=3 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 3 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=4 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 4 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=5 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 5 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=6 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 6 --my_world_size ${my_world_size} --eos_ids 128009 &
+CUDA_VISIBLE_DEVICES=7 python ./generation/gen_hf2.py --model_name_or_path ${infer_model} --dataset_name_or_path ${prompt_dir} --output_dir ${output_dir} --K ${K} --temperature 1.0 --local_index 7 --my_world_size ${my_world_size} --eos_ids 128009 &
+    wait
+    python ./generation/merge_data.py --base_path ${output_dir} --output_dir "${output_dir}_data.jsonl" --num_datasets 8
+    accelerate launch annotate_data/get_rewards.py --reward_name_or_path sfairXC/FsfairX-LLaMA3-RM-v0.1 --dataset_name_or_path "${output_dir}_data.jsonl" --output_dir $model_output
+    accelerate launch uncertainty_select.py --model_path $model_path --dataset_path $model_output --output_dir $uncertainty_output
     conda activate rlhflow
     cat <<EOT > dpo_config.yaml
 run_name: $iteration
@@ -86,7 +89,7 @@ EOT
 # Main loop for iterations
 for i in {1..3}
 do
-    iteration_name="ultrafeedback_test_iter${i}"
+    iteration_name="ultrafeedback_uncertainty_iter${i}"
     jsonl_input="RLHFlow/ultrafeedback_iter${i}"
     json_output="${base_path}/${iteration_prefix}${i}_${iteration_name}"
     model_output="${base_path}/${iteration_prefix}${i}_${iteration_name}_reward.json"
@@ -97,7 +100,7 @@ do
         model_path=$initial_model
     else
         previous_iteration=$((i-1))
-        model_path="ultrafeedback_test_iter${previous_iteration}"
+        model_path="ultrafeedback_uncertainty_iter${previous_iteration}"
     fi
 
     run_iteration $iteration_name $model_path $jsonl_input $json_output $model_output $uncertainty_output
